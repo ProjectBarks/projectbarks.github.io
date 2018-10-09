@@ -434,9 +434,6 @@ i {
 /*********************
   Media Query Classes
 **********************/
-@media only screen and (max-width: 600px) {
-  .hide-on-small-only {
-    display: none !important; } }
 
 @media only screen and (max-width: 992px) {
   .hide-on-med-and-down {
@@ -1923,9 +1920,10 @@ main .row, footer.page-footer {
   margin: 0; }
 
 footer.page-footer {
+  padding: 0;
   background-color: #0a367b; }
   footer.page-footer .container {
-    width: 98%; }
+    width: 95%; }
 
 /* SIDEBAR */
 #side-nav {
@@ -1939,7 +1937,40 @@ footer.page-footer {
   #side-nav h4 {
     margin: 0.912rem 0 0.912rem 0; }
   #side-nav h5 {
-    margin: 0.656rem 0 0.656rem 0; }
+    font-size: 1.2rem;
+    line-height: 1.5rem;
+    margin: 0; }
+  #side-nav .facts-wrapper {
+    margin-top: 30px; }
+    #side-nav .facts-wrapper .facts-content-col {
+      padding-right: 0; }
+    #side-nav .facts-wrapper a {
+      color: #ccdefb; }
+    #side-nav .facts-wrapper p {
+      margin-top: -10px;
+      padding: 16px 0;
+      font-size: 100%;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      font-weight: 300;
+      line-height: 180%;
+      width: 100%; }
+    #side-nav .facts-wrapper .facts-about {
+      padding-right: 30px; }
+      #side-nav .facts-wrapper .facts-about a {
+        text-decoration: underline; }
+    #side-nav .facts-wrapper .fact-icon {
+      padding-right: 0; }
+      #side-nav .facts-wrapper .fact-icon i {
+        line-height: 1.5rem; }
+    #side-nav .facts-wrapper span {
+      display: block;
+      line-height: 160%; }
+    #side-nav .facts-wrapper .facts-content-lg {
+      font-size: 120%;
+      font-weight: 400; }
+    #side-nav .facts-wrapper .facts-content-sm {
+      font-size: 90%;
+      padding-bottom: 10px; }
   #side-nav.animate-out .portrait {
     transition-duration: 0.35s;
     transition-property: padding-top, min-height;
@@ -1997,38 +2028,6 @@ footer.page-footer {
   color: white;
   background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6)); }
 
-.facts-wrapper {
-  margin-top: 12.5px; }
-  .facts-wrapper .facts-content-col {
-    padding-right: 0; }
-  .facts-wrapper a {
-    color: #ccdefb; }
-  .facts-wrapper p {
-    margin-top: -10px;
-    padding: 16px 0;
-    font-size: 100%;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    font-weight: 300;
-    line-height: 180%;
-    width: 100%; }
-  .facts-wrapper .facts-about {
-    padding-right: 30px; }
-    .facts-wrapper .facts-about a {
-      text-decoration: underline; }
-  .facts-wrapper .fact-icon {
-    padding-right: 0; }
-    .facts-wrapper .fact-icon h5 {
-      margin-top: .4rem; }
-  .facts-wrapper span {
-    display: block;
-    line-height: 160%; }
-  .facts-wrapper .facts-content-lg {
-    font-size: 120%;
-    font-weight: 400; }
-  .facts-wrapper .facts-content-sm {
-    font-size: 90%;
-    padding-bottom: 10px; }
-
 .col .row {
   margin-left: 0 !important;
   margin-right: 0 !important; }
@@ -2068,9 +2067,7 @@ footer.page-footer {
   margin-bottom: 0 !important; }
 
 #projects .content {
-  margin-top: 0 !important;
-  margin-left: 30px;
-  margin-right: 30px;
+  margin: 0 20px 0 20px !important;
   padding: 0; }
 
 #projects .card .content {
@@ -2145,6 +2142,8 @@ footer.page-footer {
     max-height: none; }
   #side-nav {
     height: auto; }
+    #side-nav.col .row {
+      margin: 0 !important; }
   #main-panel {
     padding: 0;
     margin: 0; }
@@ -2152,6 +2151,6 @@ footer.page-footer {
       margin: 10px 0 30px;
       color: #333; }
   #projects .content {
-    margin-left: 0;
-    margin-right: 0; } }
+    margin-left: 0 !important;
+    margin-right: 0 !important; } }
 
