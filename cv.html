@@ -45,7 +45,16 @@ body{
 h1{font-size:15px;font-weight:500;margin:0 0 4px}
 .ascii{
   color:var(--accent);white-space:pre;line-height:1.3;
-  font-size:clamp(6px,2.2vw,19px);margin:16px 0 28px;letter-spacing:0;
+  margin:16px 0 28px;letter-spacing:0;
+  /* banner is 63 monospace columns (~0.602em advance = 38em). Size it from the
+     text measure so its right edge lands on the same line as the rules, instead
+     of guessing a vw step that ignores the scrollbar and leaves a right gap. */
+  font-size:min(19.26px, calc((100vw - 48px) / 38));
+}
+@supports (container-type:inline-size){
+  /* cqi is the wrap's content box: exact, and unaffected by scrollbar width. */
+  .wrap{container-type:inline-size}
+  .ascii{font-size:calc(100cqi / 38)}
 }
 .meta{color:var(--muted);margin-bottom:24px;font-size:12px}
 .meta span{margin-right:18px}
