@@ -1,29 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>headroom: fewer tokens, bigger bill · Brandon Barker</title><meta name="description" content="Staff software engineer at Uber building software that maps the world. Tinkerer, inventor, NYC."><meta name="theme-color" content="#5f82ff"><link rel="icon" type="image/x-icon" href="/images/favicons/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon-180x180.png"><link rel="apple-touch-icon" sizes="152x152" href="/images/favicons/apple-touch-icon-152x152.png"><link rel="apple-touch-icon" sizes="120x120" href="/images/favicons/apple-touch-icon-120x120.png"><meta property="og:title" content="Brandon Barker, Staff Software Engineer"><meta property="og:description" content="Building software that maps the world. Staff SWE at Uber, NYC."><meta property="og:type" content="website"><meta property="og:url" content="https://brandonbarker.me/writing/fewer-tokens-bigger-bill"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500&display=swap"><link rel="stylesheet" href="/_astro/Base.v2DB-puk.css"></head><body><main class="wrap"><div class="topbar" id="top"><span class="prompt"><b>brandon@nyc</b> :~$ cat fewer-tokens-bigger-bill.mdx<span class="cursor"></span></span><nav class="tabs"><a href="/">~/root</a><a href="/cv">~/cv</a></nav></div><article class="post"><p class="back"><a href="/">&larr; ~/root</a></p><h1>headroom: fewer tokens, bigger bill</h1><p class="role"><time datetime="2026-07-28">2026 jul 28</time></p><div class="prose"><p>there is a category of tool that sits between your agent and the model and rewrites
-the conversation history to make it smaller. the pitch is simple: fewer tokens in,
-smaller bill. the meter on the side of the box even tells you how much you saved.</p>
-<p>i ran one of them, headroom, across a 25-task agentic coding benchmark, three ways,
-and the compression was real: 39% fewer input tokens. the bill did not move. on the
-subset where both arms did real work, compression was more expensive than sending the
-full history.</p>
-<p>the reason is prompt caching, and once you see it, the whole savings model inverts.</p>
-<h2 id="the-control-arm-is-the-whole-trick">the control arm is the whole trick</h2>
-<p>most benchmark writeups compare a treatment against a baseline and report the delta.
-that tells you nothing until you know how much the harness moves on its own.</p>
-<p>so the third arm was a control that changes the configuration without changing the
-work: headroom is in the path, but in a mode where it compresses zero tokens by its
-own accounting. baseline versus that control is the same configuration run twice. an
-A/A test.</p>
-<p>it is worth saying what that arm produced, because it is the entire reason the rest
-of the analysis holds up. running the identical setup twice yielded a 17% apparent
-cost difference, with a 95% bootstrap confidence interval on the mean per-task delta
-that comfortably straddled zero. seventeen percent of pure noise.</p>
-<p>if i had skipped the A/A arm, i could have run baseline against compression, computed
-a number in that same range, and shipped a slide saying compression saves money. the
-control is what turns “we measured a difference” into “we measured a difference
-bigger than nothing.”</p>
-<h2 id="the-compression-is-real-the-savings-are-not">the compression is real. the savings are not.</h2>
-<p>token mode cut total input tokens from 215M to 132M across the arm. that part works
-exactly as advertised.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Headroom cut 39% of my tokens and raised my claude bill · Brandon Barker</title><meta name="description" content="Staff software engineer at Uber building software that maps the world. Tinkerer, inventor, NYC."><meta name="theme-color" content="#5f82ff"><link rel="icon" type="image/x-icon" href="/images/favicons/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon-180x180.png"><link rel="apple-touch-icon" sizes="152x152" href="/images/favicons/apple-touch-icon-152x152.png"><link rel="apple-touch-icon" sizes="120x120" href="/images/favicons/apple-touch-icon-120x120.png"><meta property="og:title" content="Brandon Barker, Staff Software Engineer"><meta property="og:description" content="Building software that maps the world. Staff SWE at Uber, NYC."><meta property="og:type" content="website"><meta property="og:url" content="https://brandonbarker.me/writing/fewer-tokens-bigger-bill"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500&display=swap"><link rel="stylesheet" href="/_astro/Base.v2DB-puk.css"></head><body><main class="wrap"><div class="topbar" id="top"><span class="prompt"><b>brandon@nyc</b> :~$ cat fewer-tokens-bigger-bill.mdx<span class="cursor"></span></span><nav class="tabs"><a href="/">~/root</a><a href="/cv">~/cv</a></nav></div><article class="post"><p class="back"><a href="/">&larr; ~/root</a></p><h1>Headroom cut 39% of my tokens and raised my claude bill</h1><p class="role"><time datetime="2026-07-28">2026 jul 28</time></p><div class="prose"><p>there has been a lot of hype around token saving tools for llms like <a href="https://github.com/rtk-ai/rtk">rtk</a>, <a href="https://headroom-docs.vercel.app/docs">headroom</a>, and <a href="https://github.com/DietrichGebert/ponytail">ponytail</a>. everytime i read about these i wonder the same question, “do these actually work?”.</p>
+<p>i really haven’t seen extensive a/b testing from these tools nor do these optimizations make sense in an efficent market. i’m not sure a good name for this but i’ll just it the “platform envelopment paradox” why would anthropic or openai not just adopt these optimizations internally and forward a chunk of the savings to you, headroom/rtk/ponytail all save tokens but i’d imagine most engineers at these labs are looking for simple ways to save compute all day. either way it just feels in this case any major token optimization which could be lifted to their platform will/would be. i wanted to go ahead and actually evaluate these in a much more controlled manner. funny enough jetbrains already had already <a href="https://blog.jetbrains.com/ai/2026/07/rtk-claude-code-token-savings/">tested</a> rtk and found it increased costs, so i wanted to apply the same tests for headroom.</p>
+<h2 id="the-plan">the plan</h2>
+<p>most of headrooms <a href="https://headroom-docs.vercel.app/docs/benchmarks">benchmarks</a> compare relative to itself. when running locally you see numbers saying how you are saving so much $$$ when we can’t say how this non-deteministic entropy hole would act without headroom.</p>
+<p>to compare i would use <a href="https://www.harborframework.com/">harbor</a> with the Sr SWE bench with headroom in a variety of configurations. i would run claude multiple times and compare it to claude with headroom. running this required me to spin up a bunch of vm’s with a anthropic api key (no subscription pricing) so i decided to sample 25 test cases which would favor headroom.</p>
+<h2 id="what-i-found">what i found</h2>
+<p>headroom has two modes token mode, and cache mode. token mode will rewrite history and cache tokens mid transcript, cache mode will only rewrite the newest part of the transcript. the token mode cut total input tokens from 215M to 132M across the arm. that part works exactly as advertised. <em>yay</em></p>
 <figure class="fig"><div class="fig-pair"><div><p class="fig-head">total prompt tokens</p><p class="fig-sub">cache reads plus fresh input</p><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="168" viewBox="0 0 337 168" style="background: transparent; font-size: 11px;" role="img" aria-label="Total prompt tokens by arm: off 215M, on-cache 191M, on-token 132M."><style>:where(.plot-d6a7b5) {
   --plot-background: white;
   display: block;
@@ -65,9 +46,8 @@ exactly as advertised.</p>
 :where(.plot-d6a7b5 tspan) {
   white-space: pre;
 }</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,134)" d="M0,0L0,6"></path><path transform="translate(180,134)" d="M0,0L0,6"></path><path transform="translate(344,134)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,134)">0</text><text y="0.71em" transform="translate(180,134)">4%</text><text y="0.71em" transform="translate(344,134)">8%</text></g><g aria-label="bar" fill="var(--chart-warm)"><rect x="16" width="69.69999999999999" y="24" height="11" rx="4"></rect><rect x="16" width="86.1" y="65" height="11" rx="4"></rect><rect x="16" width="303.4" y="106" height="11" rx="4"></rect></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(16,11)">off</text><text y="0.32em" transform="translate(16,52)">on-cache</text><text y="0.32em" transform="translate(16,93)">on-token</text></g><g aria-label="text" fill="var(--ink)" text-anchor="end" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(344,11)">1.7%</text><text y="0.32em" transform="translate(344,52)">2.1%</text><text y="0.32em" transform="translate(344,93)">7.4%</text></g><line aria-label="frame" stroke="var(--rule)" stroke-linecap="square" x1="16" x2="344" y1="134" y2="134"></line></svg></div></div></div><figcaption>Compression works on the left panel and backfires on the right. Token mode sends <b>39% fewer</b> prompt tokens than baseline, and <b>4.4x</b> as large a share of them arrives uncached, where they bill at ten times the cache-read rate.</figcaption></figure>
-<p>the cost delta did not clear the noise floor. the treatment’s mean per-task delta
-landed <em>inside</em> the A/A band, with a Wilcoxon signed-rank p of 0.66 and a Cohen’s dz
-of 0.13. more tasks came out pricier with compression on than came out cheaper.</p>
+<p>great rigth? well not exactly. the treatment’s mean per-task delta
+landed <em>inside</em> a range of running without headroom. tasks came out pricier with compression on than came out cheaper.</p>
 <figure class="fig"><p class="fig-head">mean per-task cost delta, off minus on</p><p class="fig-sub">dot is the mean, bar is the median, line is the 95% bootstrap CI</p><div class="fig-key"><span><i class="sw sw-band"></i> A/A control noise band</span><span><i class="sw sw-dot sw-grey"></i> on-cache, control</span><span><i class="sw sw-dot sw-accent"></i> on-token, treatment</span></div><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="214" viewBox="0 0 700 214" style="background: transparent; font-size: 11px;" role="img" aria-label="The treatment's mean cost saving of $0.367 per task sits inside the A/A control's own 95% confidence interval, and both intervals straddle zero."><style>:where(.plot-d6a7b5) {
   --plot-background: white;
   display: block;
@@ -92,7 +72,7 @@ of 0.13. more tasks came out pricier with compression on than came out cheaper.<
 <p>so: 39% fewer tokens, no detectable change in cost. that combination should feel
 wrong. tokens are what you pay for.</p>
 <h2 id="a-cache-read-costs-a-tenth-of-a-fresh-token">a cache read costs a tenth of a fresh token</h2>
-<p>it stops feeling wrong once you price the tokens correctly.</p>
+<p>here is the most important thing to understand of llm providers. all tokens are not billed the same!</p>
 <p>with provider prompt caching, tokens are not fungible. at published Sonnet rates,
 fresh input runs $3.00 per million and a cache read runs $0.30 per million. a cache
 read is a tenth the price. an agent loop that keeps appending to a stable prefix is
@@ -101,11 +81,11 @@ were cache reads.</p>
 <p>now consider what compression does mechanically. it rewrites history. rewriting
 history changes the prefix. changing the prefix invalidates the cache.</p>
 <p>the control arm busted the provider cache 14 times across 25 tasks. the compression
-arm busted it 123 times. cache-read reuse per write token fell from 38:1 to 11:1.
+busted it 123 times. cache-read reuse per write token fell from 38:1 to 11:1.
 compression removed tokens, and in the process pushed six million <em>other</em> tokens out
 of the cache and into full-price billing.</p>
-<p>the arithmetic is brutal in its symmetry. the value of the lost cache discount came
-out within a dollar or two of the value of the compression savings. you are trading
+<p>the value of the lost cache discount came out within
+a dollar or two of the value of the compression savings. you are trading
 tokens at $0.30 for the privilege of sending fewer tokens at $3.00.</p>
 <figure class="fig"><p class="fig-head">what compression saved, against what it destroyed</p><p class="fig-sub">dollars across the 25-task on-token arm</p><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="174" viewBox="0 0 700 174" style="background: transparent; font-size: 11px;" role="img" aria-label="The $15.41 of metered compression savings is cancelled by $16.37 of lost cache discount, leaving a net of minus $0.96."><style>:where(.plot-d6a7b5) {
   --plot-background: white;
@@ -131,7 +111,7 @@ tokens at $0.30 for the privilege of sending fewer tokens at $3.00.</p>
 <blockquote>
 <p>on a workload that already reuses the cache, shrinking the prompt costs money.</p>
 </blockquote>
-<h2 id="how-the-meter-gets-it-wrong">how the meter gets it wrong</h2>
+<h2 id="so-then-what-savings-is-headroom-claiming">so then what savings is headroom claiming</h2>
 <p>headroom reports its own savings, and it reported saving real money on this run. it
 overstated by roughly 1.9x. the mechanism is worth describing precisely, because it
 is a general failure mode and not headroom’s alone.</p>
@@ -166,44 +146,7 @@ count the tokens it knocked out of the cache somewhere else in the loop.</p>
 <p>per task, the meter would happily report a saving on trials that came out more
 expensive than baseline. that is the tell. a savings number that cannot go negative
 is not measuring savings, it is measuring activity.</p>
-<h2 id="a-dashboard-cannot-catch-this">a dashboard cannot catch this</h2>
-<p>there was a monitoring dashboard for this, fed by the same emitted metrics, and it
-showed a healthy savings rate. it was faithfully rendering the number headroom
-emitted, which is exactly the problem.</p>
-<p>the dashboard reported cost saved at roughly twice the tokens removed. the same shape
-i recomputed from the benchmark’s own captured emission. that ratio should be a
-smell: if you remove 10% of tokens and book a 19% cost cut, something is pricing the
-removed tokens above what they cost.</p>
-<figure class="fig"><p class="fig-head">tokens removed against cost booked as saved</p><p class="fig-sub">percent, two independent readings of the same metric</p><div class="fig-key"><span><i class="sw sw-dot sw-accent"></i> tokens removed</span><span><i class="sw sw-dot sw-warm"></i> cost booked as saved</span></div><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="184" viewBox="0 0 700 184" style="background: transparent; font-size: 11px;" role="img" aria-label="Both readings book about twice as much cost saved as tokens removed: 10.1% of tokens for 19.4% of cost in production, 9.7% for 24.7% in the benchmark."><style>:where(.plot-d6a7b5) {
-  --plot-background: white;
-  display: block;
-  height: auto;
-  height: intrinsic;
-  max-width: 100%;
-}
-:where(.plot-d6a7b5 text),
-:where(.plot-d6a7b5 tspan) {
-  white-space: pre;
-}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,150)" d="M0,0L0,6"></path><path transform="translate(238.66666666666666,150)" d="M0,0L0,6"></path><path transform="translate(461.3333333333333,150)" d="M0,0L0,6"></path><path transform="translate(684,150)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,150)">0</text><text y="0.71em" transform="translate(238.66666666666666,150)">10%</text><text y="0.71em" transform="translate(461.3333333333333,150)">20%</text><text y="0.71em" transform="translate(684,150)">30%</text></g><g aria-label="link" fill="none" stroke="var(--rule)" stroke-width="2" stroke-miterlimit="1"><path d="M240.893,42L447.973,42"></path><path d="M231.987,114L565.987,114"></path></g><g aria-label="dot" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"><circle cx="240.89333333333335" cy="42" r="5"></circle><circle cx="231.98666666666662" cy="114" r="5"></circle></g><g aria-label="dot" fill="var(--chart-warm)" stroke="var(--bg)" stroke-width="2"><circle cx="447.97333333333324" cy="42" r="5"></circle><circle cx="565.9866666666667" cy="114" r="5"></circle></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,-26)"><text y="0.32em" transform="translate(16,42)">production fleet dashboard</text><text y="0.32em" transform="translate(16,114)">recomputed from this benchmark</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,20)"><text y="0.32em" transform="translate(240.89333333333335,42)">10.1%</text><text y="0.32em" transform="translate(231.98666666666662,114)">9.7%</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,20)"><text y="0.32em" transform="translate(447.97333333333324,42)">19.4%</text><text y="0.32em" transform="translate(565.9866666666667,114)">24.7%</text></g><g aria-label="text" fill="var(--muted)" text-anchor="start" font-size="11" transform="translate(14,-2)"><text y="0.32em" transform="translate(447.97333333333324,42)">1.9x</text><text y="0.32em" transform="translate(565.9866666666667,114)">2.5x</text></g></svg></div><div class="plot-narrow"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="184" viewBox="0 0 380 184" style="background: transparent; font-size: 11px;" role="img" aria-label="Both readings book about twice as much cost saved as tokens removed: 10.1% of tokens for 19.4% of cost in production, 9.7% for 24.7% in the benchmark."><style>:where(.plot-d6a7b5) {
-  --plot-background: white;
-  display: block;
-  height: auto;
-  height: intrinsic;
-  max-width: 100%;
-}
-:where(.plot-d6a7b5 text),
-:where(.plot-d6a7b5 tspan) {
-  white-space: pre;
-}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,150)" d="M0,0L0,6"></path><path transform="translate(132,150)" d="M0,0L0,6"></path><path transform="translate(248,150)" d="M0,0L0,6"></path><path transform="translate(364,150)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,150)">0</text><text y="0.71em" transform="translate(132,150)">10%</text><text y="0.71em" transform="translate(248,150)">20%</text><text y="0.71em" transform="translate(364,150)">30%</text></g><g aria-label="link" fill="none" stroke="var(--rule)" stroke-width="2" stroke-miterlimit="1"><path d="M133.16,42L241.04,42"></path><path d="M128.52,114L302.52,114"></path></g><g aria-label="dot" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"><circle cx="133.16" cy="42" r="5"></circle><circle cx="128.51999999999998" cy="114" r="5"></circle></g><g aria-label="dot" fill="var(--chart-warm)" stroke="var(--bg)" stroke-width="2"><circle cx="241.04" cy="42" r="5"></circle><circle cx="302.52" cy="114" r="5"></circle></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,-26)"><text y="0.32em" transform="translate(16,42)">production fleet dashboard</text><text y="0.32em" transform="translate(16,114)">recomputed from this benchmark</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,20)"><text y="0.32em" transform="translate(133.16,42)">10.1%</text><text y="0.32em" transform="translate(128.51999999999998,114)">9.7%</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,20)"><text y="0.32em" transform="translate(241.04,42)">19.4%</text><text y="0.32em" transform="translate(302.52,114)">24.7%</text></g><g aria-label="text" fill="var(--muted)" text-anchor="start" font-size="11" transform="translate(14,-2)"><text y="0.32em" transform="translate(241.04,42)">1.9x</text><text y="0.32em" transform="translate(302.52,114)">2.5x</text></g></svg></div><figcaption>Both readings book roughly twice as much cost saved as tokens removed. The metric credits every removed token at a flat <b>$2.00</b> per million, and on this workload the cache-weighted price actually paid was <b>$0.79</b> per million, so the saving arrives already inflated, before anything is subtracted for the cache reuse the removal destroyed.</figcaption></figure>
-<p>but the structural issue is deeper than a bad constant. the dashboard has no off arm.
-there is no counterfactual anywhere in it, and no line item for a lost cache discount.
-it can only ever display the gross claim. it cannot see the cache busting happening
-elsewhere in the loop that cancels the saving, because nothing in its data model
-represents “what this would have cost without me.”</p>
-<p>instrumentation that is fed exclusively by the thing it measures will confirm that
-thing is working. you need an arm where the thing is off.</p>
-<h2 id="it-did-not-make-the-agent-worse">it did not make the agent worse</h2>
-<p>worth saying, because it is the part that survives.</p>
+<h2 id="some-good-things-it-did-not-make-the-agent-worse">some good things; it did not make the agent worse</h2>
 <p>solve rates were flat: 5 of 25 with compression, 4 for baseline, 4 for the control.
 i had subagents read the full session transcripts for every task where the arms
 disagreed, side by side, rather than trusting the aggregate.</p>
@@ -217,10 +160,11 @@ made.</p>
 <p>so compression matched the baseline’s reasoning quality on 39% fewer input tokens.
 that is a genuinely useful result. it is just not a cost result.</p>
 <h2 id="the-bottom-line">the bottom line</h2>
-<p>compressing agent history works, and on a cache-heavy workload it does not save money,
-because the cache discount you destroy is worth about as much as the tokens you remove.
-before you trust a savings meter, check whether it prices removed tokens at what you
-actually paid for them, and whether it can report a negative number at all.</p>
+<p>headroom compressing agent history works, and on a cache-heavy workload it does not save money, because the cache discount you destroy is worth about as much as the tokens you remove.</p>
+<p>before you trust a savings meter, check whether it prices removed tokens at what you
+actually paid for them, and whether it can report a negative number at all. i would
+like the industry to actually scrutinize these tools more and measure them in a more
+scientifically rigourous way.</p>
 <p>and run the A/A arm. the gap between “different” and “different from noise” was 17
 percentage points here, which is more than large enough to have shipped the wrong
 conclusion.</p>
