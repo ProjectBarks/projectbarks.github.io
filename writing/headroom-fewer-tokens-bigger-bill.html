@@ -131,7 +131,7 @@
 <p>so compression matched the baseline’s reasoning quality on 39% fewer input tokens. that part is genuinely useful, it just has nothing to do with cost.</p>
 <h2 id="the-bottom-line">the bottom line</h2>
 <p>compressing agent history works. on a cache-heavy workload it doesn’t save money, because the cache discount you give up is worth about as much as the tokens you remove.</p>
-<p>before you trust a savings meter, check whether it prices removed tokens at what you actually paid for them, and whether it can report a negative number at all. i’d like the industry to scrutinize these tools more and measure them more rigorously.</p>
+<p>before you trust one of these tools, check whether it prices removed tokens at what you actually paid for them, and whether it can report a negative number at all. i’d like the industry to scrutinize these tools more and measure them more rigorously.</p>
 <p>and run the same setup twice before you trust any delta. two runs of practically the same configuration came out $0.730 per task apart here, larger than the $0.367 token mode showed. without that check i would have shipped the wrong conclusion.</p>
 <p>where compression still earns its place is when you’re up against a context window rather than a budget. matching baseline reasoning on 39% fewer tokens is real, it’s just a memory result and not a cost one.</p>
 <section data-footnotes="true" class="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2>
