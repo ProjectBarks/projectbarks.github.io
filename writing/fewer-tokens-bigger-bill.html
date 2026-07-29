@@ -1,0 +1,229 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>headroom: fewer tokens, bigger bill · Brandon Barker</title><meta name="description" content="Staff software engineer at Uber building software that maps the world. Tinkerer, inventor, NYC."><meta name="theme-color" content="#5f82ff"><link rel="icon" type="image/x-icon" href="/images/favicons/favicon.ico"><link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon-180x180.png"><link rel="apple-touch-icon" sizes="152x152" href="/images/favicons/apple-touch-icon-152x152.png"><link rel="apple-touch-icon" sizes="120x120" href="/images/favicons/apple-touch-icon-120x120.png"><meta property="og:title" content="Brandon Barker, Staff Software Engineer"><meta property="og:description" content="Building software that maps the world. Staff SWE at Uber, NYC."><meta property="og:type" content="website"><meta property="og:url" content="https://brandonbarker.me/writing/fewer-tokens-bigger-bill"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500&display=swap"><link rel="stylesheet" href="/_astro/Base.v2DB-puk.css"></head><body><main class="wrap"><div class="topbar" id="top"><span class="prompt"><b>brandon@nyc</b> :~$ cat fewer-tokens-bigger-bill.mdx<span class="cursor"></span></span><nav class="tabs"><a href="/">~/root</a><a href="/cv">~/cv</a></nav></div><article class="post"><p class="back"><a href="/">&larr; ~/root</a></p><h1>headroom: fewer tokens, bigger bill</h1><p class="role"><time datetime="2026-07-28">2026 jul 28</time></p><div class="prose"><p>there is a category of tool that sits between your agent and the model and rewrites
+the conversation history to make it smaller. the pitch is simple: fewer tokens in,
+smaller bill. the meter on the side of the box even tells you how much you saved.</p>
+<p>i ran one of them, headroom, across a 25-task agentic coding benchmark, three ways,
+and the compression was real: 39% fewer input tokens. the bill did not move. on the
+subset where both arms did real work, compression was more expensive than sending the
+full history.</p>
+<p>the reason is prompt caching, and once you see it, the whole savings model inverts.</p>
+<h2 id="the-control-arm-is-the-whole-trick">the control arm is the whole trick</h2>
+<p>most benchmark writeups compare a treatment against a baseline and report the delta.
+that tells you nothing until you know how much the harness moves on its own.</p>
+<p>so the third arm was a control that changes the configuration without changing the
+work: headroom is in the path, but in a mode where it compresses zero tokens by its
+own accounting. baseline versus that control is the same configuration run twice. an
+A/A test.</p>
+<p>it is worth saying what that arm produced, because it is the entire reason the rest
+of the analysis holds up. running the identical setup twice yielded a 17% apparent
+cost difference, with a 95% bootstrap confidence interval on the mean per-task delta
+that comfortably straddled zero. seventeen percent of pure noise.</p>
+<p>if i had skipped the A/A arm, i could have run baseline against compression, computed
+a number in that same range, and shipped a slide saying compression saves money. the
+control is what turns “we measured a difference” into “we measured a difference
+bigger than nothing.”</p>
+<h2 id="the-compression-is-real-the-savings-are-not">the compression is real. the savings are not.</h2>
+<p>token mode cut total input tokens from 215M to 132M across the arm. that part works
+exactly as advertised.</p>
+<figure class="fig"><div class="fig-pair"><div><p class="fig-head">total prompt tokens</p><p class="fig-sub">cache reads plus fresh input</p><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="168" viewBox="0 0 337 168" style="background: transparent; font-size: 11px;" role="img" aria-label="Total prompt tokens by arm: off 215M, on-cache 191M, on-token 132M."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,134)" d="M0,0L0,6"></path><path transform="translate(148.6086956521739,134)" d="M0,0L0,6"></path><path transform="translate(281.2173913043478,134)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,134)">0</text><text y="0.71em" transform="translate(148.6086956521739,134)">100M</text><text y="0.71em" transform="translate(281.2173913043478,134)">200M</text></g><g aria-label="bar" fill="var(--accent)"><rect x="16" width="285.10869565217394" y="24" height="11" rx="4"></rect><rect x="16" width="253.2826086956522" y="65" height="11" rx="4"></rect><rect x="16" width="175.0434782608696" y="106" height="11" rx="4"></rect></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(16,11)">off</text><text y="0.32em" transform="translate(16,52)">on-cache</text><text y="0.32em" transform="translate(16,93)">on-token</text></g><g aria-label="text" fill="var(--ink)" text-anchor="end" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(321,11)">215M</text><text y="0.32em" transform="translate(321,52)">191M</text><text y="0.32em" transform="translate(321,93)">132M</text></g><line aria-label="frame" stroke="var(--rule)" stroke-linecap="square" x1="16" x2="321" y1="134" y2="134"></line></svg></div><div class="plot-narrow"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="168" viewBox="0 0 360 168" style="background: transparent; font-size: 11px;" role="img" aria-label="Total prompt tokens by arm: off 215M, on-cache 191M, on-token 132M."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,134)" d="M0,0L0,6"></path><path transform="translate(158.6086956521739,134)" d="M0,0L0,6"></path><path transform="translate(301.2173913043478,134)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,134)">0</text><text y="0.71em" transform="translate(158.6086956521739,134)">100M</text><text y="0.71em" transform="translate(301.2173913043478,134)">200M</text></g><g aria-label="bar" fill="var(--accent)"><rect x="16" width="306.60869565217394" y="24" height="11" rx="4"></rect><rect x="16" width="272.3826086956522" y="65" height="11" rx="4"></rect><rect x="16" width="188.24347826086958" y="106" height="11" rx="4"></rect></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(16,11)">off</text><text y="0.32em" transform="translate(16,52)">on-cache</text><text y="0.32em" transform="translate(16,93)">on-token</text></g><g aria-label="text" fill="var(--ink)" text-anchor="end" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(344,11)">215M</text><text y="0.32em" transform="translate(344,52)">191M</text><text y="0.32em" transform="translate(344,93)">132M</text></g><line aria-label="frame" stroke="var(--rule)" stroke-linecap="square" x1="16" x2="344" y1="134" y2="134"></line></svg></div></div><div><p class="fig-head">share billed at full price</p><p class="fig-sub">fresh input, never cached</p><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="168" viewBox="0 0 337 168" style="background: transparent; font-size: 11px;" role="img" aria-label="Share of prompt tokens billed at full price: off 1.7%, on-cache 2.1%, on-token 7.4%."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,134)" d="M0,0L0,6"></path><path transform="translate(168.5,134)" d="M0,0L0,6"></path><path transform="translate(321,134)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,134)">0</text><text y="0.71em" transform="translate(168.5,134)">4%</text><text y="0.71em" transform="translate(321,134)">8%</text></g><g aria-label="bar" fill="var(--chart-warm)"><rect x="16" width="64.81249999999999" y="24" height="11" rx="4"></rect><rect x="16" width="80.0625" y="65" height="11" rx="4"></rect><rect x="16" width="282.125" y="106" height="11" rx="4"></rect></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(16,11)">off</text><text y="0.32em" transform="translate(16,52)">on-cache</text><text y="0.32em" transform="translate(16,93)">on-token</text></g><g aria-label="text" fill="var(--ink)" text-anchor="end" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(321,11)">1.7%</text><text y="0.32em" transform="translate(321,52)">2.1%</text><text y="0.32em" transform="translate(321,93)">7.4%</text></g><line aria-label="frame" stroke="var(--rule)" stroke-linecap="square" x1="16" x2="321" y1="134" y2="134"></line></svg></div><div class="plot-narrow"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="168" viewBox="0 0 360 168" style="background: transparent; font-size: 11px;" role="img" aria-label="Share of prompt tokens billed at full price: off 1.7%, on-cache 2.1%, on-token 7.4%."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,134)" d="M0,0L0,6"></path><path transform="translate(180,134)" d="M0,0L0,6"></path><path transform="translate(344,134)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,134)">0</text><text y="0.71em" transform="translate(180,134)">4%</text><text y="0.71em" transform="translate(344,134)">8%</text></g><g aria-label="bar" fill="var(--chart-warm)"><rect x="16" width="69.69999999999999" y="24" height="11" rx="4"></rect><rect x="16" width="86.1" y="65" height="11" rx="4"></rect><rect x="16" width="303.4" y="106" height="11" rx="4"></rect></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(16,11)">off</text><text y="0.32em" transform="translate(16,52)">on-cache</text><text y="0.32em" transform="translate(16,93)">on-token</text></g><g aria-label="text" fill="var(--ink)" text-anchor="end" font-size="12" transform="translate(0,2.5)"><text y="0.32em" transform="translate(344,11)">1.7%</text><text y="0.32em" transform="translate(344,52)">2.1%</text><text y="0.32em" transform="translate(344,93)">7.4%</text></g><line aria-label="frame" stroke="var(--rule)" stroke-linecap="square" x1="16" x2="344" y1="134" y2="134"></line></svg></div></div></div><figcaption>Compression works on the left panel and backfires on the right. Token mode sends <b>39% fewer</b> prompt tokens than baseline, and <b>4.4x</b> as large a share of them arrives uncached, where they bill at ten times the cache-read rate.</figcaption></figure>
+<p>the cost delta did not clear the noise floor. the treatment’s mean per-task delta
+landed <em>inside</em> the A/A band, with a Wilcoxon signed-rank p of 0.66 and a Cohen’s dz
+of 0.13. more tasks came out pricier with compression on than came out cheaper.</p>
+<figure class="fig"><p class="fig-head">mean per-task cost delta, off minus on</p><p class="fig-sub">dot is the mean, bar is the median, line is the 95% bootstrap CI</p><div class="fig-key"><span><i class="sw sw-band"></i> A/A control noise band</span><span><i class="sw sw-dot sw-grey"></i> on-cache, control</span><span><i class="sw sw-dot sw-accent"></i> on-token, treatment</span></div><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="214" viewBox="0 0 700 214" style="background: transparent; font-size: 11px;" role="img" aria-label="The treatment's mean cost saving of $0.367 per task sits inside the A/A control's own 95% confidence interval, and both intervals straddle zero."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,166)" d="M0,0L0,6"></path><path transform="translate(238.66666666666666,166)" d="M0,0L0,6"></path><path transform="translate(461.3333333333333,166)" d="M0,0L0,6"></path><path transform="translate(684,166)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,166)">-$1</text><text y="0.71em" transform="translate(238.66666666666666,166)">$0</text><text y="0.71em" transform="translate(461.3333333333333,166)">+$1</text><text y="0.71em" transform="translate(684,166)">+$2</text></g><g aria-label="rect" fill="var(--chart-band)"><rect x="183.22266666666667" y="24" width="428.41066666666666" height="142"></rect></g><g aria-label="rule" stroke="var(--rule)"><line x1="183.22266666666667" x2="183.22266666666667" y1="24" y2="166"></line><line x1="611.6333333333333" x2="611.6333333333333" y1="24" y2="166"></line></g><g aria-label="rule" stroke="var(--dim)"><line x1="238.66666666666666" x2="238.66666666666666" y1="24" y2="166"></line></g><g aria-label="rule" stroke-width="2" transform="translate(0,14)"><line x1="183.22266666666667" x2="611.6333333333333" y1="53" y2="53" stroke="var(--chart-grey)"></line><line x1="88.58933333333331" x2="593.8199999999999" y1="109" y2="109" stroke="var(--accent)"></line></g><g aria-label="tick" stroke-width="1.5"><line x1="183.22266666666667" x2="183.22266666666667" y1="65" y2="69" stroke="var(--chart-grey)"></line><line x1="88.58933333333331" x2="88.58933333333331" y1="121" y2="125" stroke="var(--accent)"></line></g><g aria-label="tick" stroke-width="1.5"><line x1="611.6333333333333" x2="611.6333333333333" y1="65" y2="69" stroke="var(--chart-grey)"></line><line x1="593.8199999999999" x2="593.8199999999999" y1="121" y2="125" stroke="var(--accent)"></line></g><g aria-label="tick" stroke-width="3"><line x1="424.14799999999997" x2="424.14799999999997" y1="61" y2="73" stroke="var(--chart-grey)"></line><line x1="178.54666666666665" x2="178.54666666666665" y1="117" y2="129" stroke="var(--accent)"></line></g><g aria-label="dot" stroke="var(--bg)" stroke-width="2" transform="translate(0,14)"><circle cx="401.2133333333333" cy="53" r="5" fill="var(--chart-grey)"></circle><circle cx="320.38533333333334" cy="109" r="5" fill="var(--accent)"></circle></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,-4)"><text y="0.32em" transform="translate(16,53)">on-cache</text><text y="0.32em" transform="translate(16,109)">on-token</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,-4)"><text y="0.32em" transform="translate(401.2133333333333,53)">+$0.730</text><text y="0.32em" transform="translate(320.38533333333334,109)">+$0.367</text></g><g aria-label="text" fill="var(--muted)" font-size="11" transform="translate(0,38)"><text y="0.32em" transform="translate(424.14799999999997,53)">median +$0.833</text><text y="0.32em" transform="translate(178.54666666666665,109)">median -$0.270</text></g><g aria-label="text" fill="var(--muted)" text-anchor="start" font-size="11" transform="translate(0,36)"><text transform="translate(16,166)">pricier with headroom</text></g><g aria-label="text" fill="var(--muted)" text-anchor="end" font-size="11" transform="translate(0,36)"><text transform="translate(684,166)">cheaper with headroom</text></g></svg></div><div class="plot-narrow"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="214" viewBox="0 0 380 214" style="background: transparent; font-size: 11px;" role="img" aria-label="The treatment's mean cost saving of $0.367 per task sits inside the A/A control's own 95% confidence interval, and both intervals straddle zero."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,166)" d="M0,0L0,6"></path><path transform="translate(132,166)" d="M0,0L0,6"></path><path transform="translate(248,166)" d="M0,0L0,6"></path><path transform="translate(364,166)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,166)">-$1</text><text y="0.71em" transform="translate(132,166)">$0</text><text y="0.71em" transform="translate(248,166)">+$1</text><text y="0.71em" transform="translate(364,166)">+$2</text></g><g aria-label="rect" fill="var(--chart-band)"><rect x="103.11600000000001" y="24" width="223.184" height="142"></rect></g><g aria-label="rule" stroke="var(--rule)"><line x1="103.11600000000001" x2="103.11600000000001" y1="24" y2="166"></line><line x1="326.3" x2="326.3" y1="24" y2="166"></line></g><g aria-label="rule" stroke="var(--dim)"><line x1="132" x2="132" y1="24" y2="166"></line></g><g aria-label="rule" stroke-width="2" transform="translate(0,14)"><line x1="103.11600000000001" x2="326.3" y1="53" y2="53" stroke="var(--chart-grey)"></line><line x1="53.815999999999995" x2="317.02" y1="109" y2="109" stroke="var(--accent)"></line></g><g aria-label="tick" stroke-width="1.5"><line x1="103.11600000000001" x2="103.11600000000001" y1="65" y2="69" stroke="var(--chart-grey)"></line><line x1="53.815999999999995" x2="53.815999999999995" y1="121" y2="125" stroke="var(--accent)"></line></g><g aria-label="tick" stroke-width="1.5"><line x1="326.3" x2="326.3" y1="65" y2="69" stroke="var(--chart-grey)"></line><line x1="317.02" x2="317.02" y1="121" y2="125" stroke="var(--accent)"></line></g><g aria-label="tick" stroke-width="3"><line x1="228.628" x2="228.628" y1="61" y2="73" stroke="var(--chart-grey)"></line><line x1="100.67999999999999" x2="100.67999999999999" y1="117" y2="129" stroke="var(--accent)"></line></g><g aria-label="dot" stroke="var(--bg)" stroke-width="2" transform="translate(0,14)"><circle cx="216.68" cy="53" r="5" fill="var(--chart-grey)"></circle><circle cx="174.572" cy="109" r="5" fill="var(--accent)"></circle></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,-4)"><text y="0.32em" transform="translate(16,53)">on-cache</text><text y="0.32em" transform="translate(16,109)">on-token</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,-4)"><text y="0.32em" transform="translate(216.68,53)">+$0.730</text><text y="0.32em" transform="translate(174.572,109)">+$0.367</text></g><g aria-label="text" fill="var(--muted)" font-size="11" transform="translate(0,38)"><text y="0.32em" transform="translate(228.628,53)">median +$0.833</text><text y="0.32em" transform="translate(100.67999999999999,109)">median -$0.270</text></g><g aria-label="text" fill="var(--muted)" text-anchor="start" font-size="11" transform="translate(0,36)"><text transform="translate(16,166)">pricier with headroom</text></g><g aria-label="text" fill="var(--muted)" text-anchor="end" font-size="11" transform="translate(0,36)"><text transform="translate(364,166)">cheaper with headroom</text></g></svg></div><div class="fig-stats"><div><b>on-cache, A/A control</b> n <i>25</i>&middot; Wilcoxon p <i>0.156</i> &middot; Cohen's dz <i>0.291</i> &middot;<i>17</i> cheaper / <i>8</i> pricier</div><div><b>on-token, treatment</b> n <i>22</i>&middot; Wilcoxon p <i>0.656</i> &middot; Cohen's dz <i>0.13</i> &middot;<i>9</i> cheaper / <i>13</i> pricier</div></div><figcaption>Running the identical configuration twice, which is what the control arm is, already produces an apparent saving of <b>$0.730</b> per task. The treatment's <b>$0.367</b> lands inside that band, its median is <b>negative</b>, and more of its tasks came out pricier than cheaper. There is no effect here to measure.</figcaption></figure>
+<p>so: 39% fewer tokens, no detectable change in cost. that combination should feel
+wrong. tokens are what you pay for.</p>
+<h2 id="a-cache-read-costs-a-tenth-of-a-fresh-token">a cache read costs a tenth of a fresh token</h2>
+<p>it stops feeling wrong once you price the tokens correctly.</p>
+<p>with provider prompt caching, tokens are not fungible. at published Sonnet rates,
+fresh input runs $3.00 per million and a cache read runs $0.30 per million. a cache
+read is a tenth the price. an agent loop that keeps appending to a stable prefix is
+close to the ideal case for this: on the baseline arm, roughly 98% of prompt tokens
+were cache reads.</p>
+<p>now consider what compression does mechanically. it rewrites history. rewriting
+history changes the prefix. changing the prefix invalidates the cache.</p>
+<p>the control arm busted the provider cache 14 times across 25 tasks. the compression
+arm busted it 123 times. cache-read reuse per write token fell from 38:1 to 11:1.
+compression removed tokens, and in the process pushed six million <em>other</em> tokens out
+of the cache and into full-price billing.</p>
+<p>the arithmetic is brutal in its symmetry. the value of the lost cache discount came
+out within a dollar or two of the value of the compression savings. you are trading
+tokens at $0.30 for the privilege of sending fewer tokens at $3.00.</p>
+<figure class="fig"><p class="fig-head">what compression saved, against what it destroyed</p><p class="fig-sub">dollars across the 25-task on-token arm</p><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="174" viewBox="0 0 700 174" style="background: transparent; font-size: 11px;" role="img" aria-label="The $15.41 of metered compression savings is cancelled by $16.37 of lost cache discount, leaving a net of minus $0.96."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(86.3157894736842,140)" d="M0,0L0,6"></path><path transform="translate(350,140)" d="M0,0L0,6"></path><path transform="translate(613.6842105263158,140)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(86.3157894736842,140)">-$15</text><text y="0.71em" transform="translate(350,140)">$0</text><text y="0.71em" transform="translate(613.6842105263158,140)">+$15</text></g><g aria-label="rule" stroke="var(--dim)"><line x1="350" x2="350" y1="6" y2="140"></line></g><g aria-label="bar"><rect x="350" width="270.89157894736843" y="24" height="13" rx="4" fill="var(--accent)"></rect><rect x="62.23263157894735" width="287.76736842105265" y="67" height="13" rx="4" fill="var(--chart-warm)"></rect><rect x="333.1242105263158" width="16.87578947368422" y="110" height="13" rx="4" fill="var(--chart-warm)"></rect></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,3.5)"><text y="0.32em" transform="translate(16,11)">compression saving, as metered</text><text y="0.32em" transform="translate(16,54)">cache discount destroyed</text><text y="0.32em" transform="translate(16,97)">net</text></g><g aria-label="text" fill="var(--ink)" text-anchor="end" font-size="12" transform="translate(0,3.5)"><text y="0.32em" transform="translate(684,11)">+$15.41</text><text y="0.32em" transform="translate(684,54)">-$16.37</text><text y="0.32em" transform="translate(684,97)">-$0.96</text></g></svg></div><div class="plot-narrow"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="174" viewBox="0 0 380 174" style="background: transparent; font-size: 11px;" role="img" aria-label="The $15.41 of metered compression savings is cancelled by $16.37 of lost cache discount, leaving a net of minus $0.96."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(52.63157894736842,140)" d="M0,0L0,6"></path><path transform="translate(190,140)" d="M0,0L0,6"></path><path transform="translate(327.36842105263156,140)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(52.63157894736842,140)">-$15</text><text y="0.71em" transform="translate(190,140)">$0</text><text y="0.71em" transform="translate(327.36842105263156,140)">+$15</text></g><g aria-label="rule" stroke="var(--dim)"><line x1="190" x2="190" y1="6" y2="140"></line></g><g aria-label="bar"><rect x="190" width="141.12315789473683" y="24" height="13" rx="4" fill="var(--accent)"></rect><rect x="40.08526315789473" width="149.91473684210527" y="67" height="13" rx="4" fill="var(--chart-warm)"></rect><rect x="181.20842105263156" width="8.791578947368436" y="110" height="13" rx="4" fill="var(--chart-warm)"></rect></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,3.5)"><text y="0.32em" transform="translate(16,11)">compression saving, as metered</text><text y="0.32em" transform="translate(16,54)">cache discount destroyed</text><text y="0.32em" transform="translate(16,97)">net</text></g><g aria-label="text" fill="var(--ink)" text-anchor="end" font-size="12" transform="translate(0,3.5)"><text y="0.32em" transform="translate(364,11)">+$15.41</text><text y="0.32em" transform="translate(364,54)">-$16.37</text><text y="0.32em" transform="translate(364,97)">-$0.96</text></g></svg></div><figcaption>Token mode busted the provider cache <b>123</b> times against the control's <b>14</b>, and cache-read reuse per write token fell from <b>38:1</b> to <b>11:1</b>. That knocked <b>6,062,098</b> tokens out of the cache and into full-price billing, worth $16.37 of forfeited discount, against $15.41 of savings headroom credited itself.</figcaption></figure>
+<blockquote>
+<p>on a workload that already reuses the cache, shrinking the prompt costs money.</p>
+</blockquote>
+<h2 id="how-the-meter-gets-it-wrong">how the meter gets it wrong</h2>
+<p>headroom reports its own savings, and it reported saving real money on this run. it
+overstated by roughly 1.9x. the mechanism is worth describing precisely, because it
+is a general failure mode and not headroom’s alone.</p>
+<figure class="fig"><p class="fig-head">savings on the run, as claimed and as measured</p><p class="fig-sub">dollars over the whole on-token arm</p><div class="fig-key"><span><i class="sw sw-grey"></i> claimed by the meter</span><span><i class="sw sw-accent"></i> measured saving</span><span><i class="sw sw-warm"></i> measured extra cost</span></div><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="174" viewBox="0 0 700 174" style="background: transparent; font-size: 11px;" role="img" aria-label="The meter claimed $15.41 saved; the matched tasks realised $8.13, and the clean set came out $8.98 more expensive than baseline."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(60.53333333333333,140)" d="M0,0L0,6"></path><path transform="translate(283.20000000000005,140)" d="M0,0L0,6"></path><path transform="translate(505.8666666666666,140)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(60.53333333333333,140)">-$10</text><text y="0.71em" transform="translate(283.20000000000005,140)">$0</text><text y="0.71em" transform="translate(505.8666666666666,140)">+$10</text></g><g aria-label="rule" stroke="var(--dim)"><line x1="283.20000000000005" x2="283.20000000000005" y1="6" y2="140"></line></g><g aria-label="bar"><rect x="283.20000000000005" width="343.1293333333333" y="24" height="13" rx="4" fill="var(--chart-grey)"></rect><rect x="283.20000000000005" width="181.02800000000002" y="67" height="13" rx="4" fill="var(--accent)"></rect><rect x="83.24533333333332" width="199.95466666666672" y="110" height="13" rx="4" fill="var(--chart-warm)"></rect></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,3.5)"><text y="0.32em" transform="translate(16,11)">claimed by headroom's meter</text><text y="0.32em" transform="translate(16,54)">measured, all matched tasks</text><text y="0.32em" transform="translate(16,97)">measured, clean set only</text></g><g aria-label="text" fill="var(--ink)" text-anchor="end" font-size="12" transform="translate(0,3.5)"><text y="0.32em" transform="translate(684,11)">+$15.41</text><text y="0.32em" transform="translate(684,54)">+$8.13</text><text y="0.32em" transform="translate(684,97)">-$8.98</text></g></svg></div><div class="plot-narrow"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="174" viewBox="0 0 380 174" style="background: transparent; font-size: 11px;" role="img" aria-label="The meter claimed $15.41 saved; the matched tasks realised $8.13, and the clean set came out $8.98 more expensive than baseline."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(39.2,140)" d="M0,0L0,6"></path><path transform="translate(155.2,140)" d="M0,0L0,6"></path><path transform="translate(271.2,140)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(39.2,140)">-$10</text><text y="0.71em" transform="translate(155.2,140)">$0</text><text y="0.71em" transform="translate(271.2,140)">+$10</text></g><g aria-label="rule" stroke="var(--dim)"><line x1="155.2" x2="155.2" y1="6" y2="140"></line></g><g aria-label="bar"><rect x="155.2" width="178.75599999999997" y="24" height="13" rx="4" fill="var(--chart-grey)"></rect><rect x="155.2" width="94.30800000000005" y="67" height="13" rx="4" fill="var(--accent)"></rect><rect x="51.032" width="104.16799999999999" y="110" height="13" rx="4" fill="var(--chart-warm)"></rect></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,3.5)"><text y="0.32em" transform="translate(16,11)">claimed by headroom's meter</text><text y="0.32em" transform="translate(16,54)">measured, all matched tasks</text><text y="0.32em" transform="translate(16,97)">measured, clean set only</text></g><g aria-label="text" fill="var(--ink)" text-anchor="end" font-size="12" transform="translate(0,3.5)"><text y="0.32em" transform="translate(364,11)">+$15.41</text><text y="0.32em" transform="translate(364,54)">+$8.13</text><text y="0.32em" transform="translate(364,97)">-$8.98</text></g></svg></div><figcaption>The gap between the first two bars is the <b>1.9x</b> overstatement. The third bar is what is left after dropping the trials that crashed early and booked a saving for work they never did.</figcaption></figure>
+<p>the savings metric credits every removed token at a flat rate, around $2.00 per
+million. but the tokens it removes on this workload were cache reads. the
+cache-weighted price actually paid was about $0.79 per million. crediting a $2.00
+saving for dropping a token that cost $0.79 is most of the gap.</p>
+<p>the rest of the gap is what the metric does not do at all: it never subtracts the
+cache reuse the compression destroyed. it counts the tokens it removed. it does not
+count the tokens it knocked out of the cache somewhere else in the loop.</p>
+<p>per task, the meter would happily report a saving on trials that came out more
+expensive than baseline. that is the tell. a savings number that cannot go negative
+is not measuring savings, it is measuring activity.</p>
+<h2 id="a-dashboard-cannot-catch-this">a dashboard cannot catch this</h2>
+<p>there was a monitoring dashboard for this, fed by the same emitted metrics, and it
+showed a healthy savings rate. it was faithfully rendering the number headroom
+emitted, which is exactly the problem.</p>
+<p>the dashboard reported cost saved at roughly twice the tokens removed. the same shape
+i recomputed from the benchmark’s own captured emission. that ratio should be a
+smell: if you remove 10% of tokens and book a 19% cost cut, something is pricing the
+removed tokens above what they cost.</p>
+<figure class="fig"><p class="fig-head">tokens removed against cost booked as saved</p><p class="fig-sub">percent, two independent readings of the same metric</p><div class="fig-key"><span><i class="sw sw-dot sw-accent"></i> tokens removed</span><span><i class="sw sw-dot sw-warm"></i> cost booked as saved</span></div><div class="plot-wide"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="184" viewBox="0 0 700 184" style="background: transparent; font-size: 11px;" role="img" aria-label="Both readings book about twice as much cost saved as tokens removed: 10.1% of tokens for 19.4% of cost in production, 9.7% for 24.7% in the benchmark."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,150)" d="M0,0L0,6"></path><path transform="translate(238.66666666666666,150)" d="M0,0L0,6"></path><path transform="translate(461.3333333333333,150)" d="M0,0L0,6"></path><path transform="translate(684,150)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,150)">0</text><text y="0.71em" transform="translate(238.66666666666666,150)">10%</text><text y="0.71em" transform="translate(461.3333333333333,150)">20%</text><text y="0.71em" transform="translate(684,150)">30%</text></g><g aria-label="link" fill="none" stroke="var(--rule)" stroke-width="2" stroke-miterlimit="1"><path d="M240.893,42L447.973,42"></path><path d="M231.987,114L565.987,114"></path></g><g aria-label="dot" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"><circle cx="240.89333333333335" cy="42" r="5"></circle><circle cx="231.98666666666662" cy="114" r="5"></circle></g><g aria-label="dot" fill="var(--chart-warm)" stroke="var(--bg)" stroke-width="2"><circle cx="447.97333333333324" cy="42" r="5"></circle><circle cx="565.9866666666667" cy="114" r="5"></circle></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,-26)"><text y="0.32em" transform="translate(16,42)">production fleet dashboard</text><text y="0.32em" transform="translate(16,114)">recomputed from this benchmark</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,20)"><text y="0.32em" transform="translate(240.89333333333335,42)">10.1%</text><text y="0.32em" transform="translate(231.98666666666662,114)">9.7%</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,20)"><text y="0.32em" transform="translate(447.97333333333324,42)">19.4%</text><text y="0.32em" transform="translate(565.9866666666667,114)">24.7%</text></g><g aria-label="text" fill="var(--muted)" text-anchor="start" font-size="11" transform="translate(14,-2)"><text y="0.32em" transform="translate(447.97333333333324,42)">1.9x</text><text y="0.32em" transform="translate(565.9866666666667,114)">2.5x</text></g></svg></div><div class="plot-narrow"><svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" height="184" viewBox="0 0 380 184" style="background: transparent; font-size: 11px;" role="img" aria-label="Both readings book about twice as much cost saved as tokens removed: 10.1% of tokens for 19.4% of cost in production, 9.7% for 24.7% in the benchmark."><style>:where(.plot-d6a7b5) {
+  --plot-background: white;
+  display: block;
+  height: auto;
+  height: intrinsic;
+  max-width: 100%;
+}
+:where(.plot-d6a7b5 text),
+:where(.plot-d6a7b5 tspan) {
+  white-space: pre;
+}</style><g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="currentColor"><path transform="translate(16,150)" d="M0,0L0,6"></path><path transform="translate(132,150)" d="M0,0L0,6"></path><path transform="translate(248,150)" d="M0,0L0,6"></path><path transform="translate(364,150)" d="M0,0L0,6"></path></g><g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0,9)"><text y="0.71em" transform="translate(16,150)">0</text><text y="0.71em" transform="translate(132,150)">10%</text><text y="0.71em" transform="translate(248,150)">20%</text><text y="0.71em" transform="translate(364,150)">30%</text></g><g aria-label="link" fill="none" stroke="var(--rule)" stroke-width="2" stroke-miterlimit="1"><path d="M133.16,42L241.04,42"></path><path d="M128.52,114L302.52,114"></path></g><g aria-label="dot" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"><circle cx="133.16" cy="42" r="5"></circle><circle cx="128.51999999999998" cy="114" r="5"></circle></g><g aria-label="dot" fill="var(--chart-warm)" stroke="var(--bg)" stroke-width="2"><circle cx="241.04" cy="42" r="5"></circle><circle cx="302.52" cy="114" r="5"></circle></g><g aria-label="text" fill="var(--dim)" text-anchor="start" font-size="12" transform="translate(0,-26)"><text y="0.32em" transform="translate(16,42)">production fleet dashboard</text><text y="0.32em" transform="translate(16,114)">recomputed from this benchmark</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,20)"><text y="0.32em" transform="translate(133.16,42)">10.1%</text><text y="0.32em" transform="translate(128.51999999999998,114)">9.7%</text></g><g aria-label="text" fill="var(--ink)" font-size="12" transform="translate(0,20)"><text y="0.32em" transform="translate(241.04,42)">19.4%</text><text y="0.32em" transform="translate(302.52,114)">24.7%</text></g><g aria-label="text" fill="var(--muted)" text-anchor="start" font-size="11" transform="translate(14,-2)"><text y="0.32em" transform="translate(241.04,42)">1.9x</text><text y="0.32em" transform="translate(302.52,114)">2.5x</text></g></svg></div><figcaption>Both readings book roughly twice as much cost saved as tokens removed. The metric credits every removed token at a flat <b>$2.00</b> per million, and on this workload the cache-weighted price actually paid was <b>$0.79</b> per million, so the saving arrives already inflated, before anything is subtracted for the cache reuse the removal destroyed.</figcaption></figure>
+<p>but the structural issue is deeper than a bad constant. the dashboard has no off arm.
+there is no counterfactual anywhere in it, and no line item for a lost cache discount.
+it can only ever display the gross claim. it cannot see the cache busting happening
+elsewhere in the loop that cancels the saving, because nothing in its data model
+represents “what this would have cost without me.”</p>
+<p>instrumentation that is fed exclusively by the thing it measures will confirm that
+thing is working. you need an arm where the thing is off.</p>
+<h2 id="it-did-not-make-the-agent-worse">it did not make the agent worse</h2>
+<p>worth saying, because it is the part that survives.</p>
+<p>solve rates were flat: 5 of 25 with compression, 4 for baseline, 4 for the control.
+i had subagents read the full session transcripts for every task where the arms
+disagreed, side by side, rather than trusting the aggregate.</p>
+<p>the disagreements were model nondeterminism, not compression. where compression
+“won,” it won by spawning a research subagent, or by diagnosing the true root cause
+while the baseline patched the wrong layer. none of the baseline runs showed the
+symptoms compression is supposed to cure: no forgotten findings, no re-reading a file
+it had already seen. the one hard regression turned out to be an infrastructure
+cutoff mid-run, with the transcript ending on a credit-balance error and zero edits
+made.</p>
+<p>so compression matched the baseline’s reasoning quality on 39% fewer input tokens.
+that is a genuinely useful result. it is just not a cost result.</p>
+<h2 id="the-bottom-line">the bottom line</h2>
+<p>compressing agent history works, and on a cache-heavy workload it does not save money,
+because the cache discount you destroy is worth about as much as the tokens you remove.
+before you trust a savings meter, check whether it prices removed tokens at what you
+actually paid for them, and whether it can report a negative number at all.</p>
+<p>and run the A/A arm. the gap between “different” and “different from noise” was 17
+percentage points here, which is more than large enough to have shipped the wrong
+conclusion.</p>
+<p>where compression still earns its place is when you are up against a context window
+rather than a budget. matching baseline reasoning on 39% fewer tokens is real. it is
+just a memory result wearing a cost result’s clothes.</p></div></article><hr><footer><span class="prompt"><b>brandon@nyc</b> :~$ contact</span><span><a href="mailto:contact@brandonbarker.me">email</a> · <a href="https://github.com/ProjectBarks" target="_blank" rel="noopener noreferrer">github</a> · <a href="https://www.linkedin.com/in/projectbarks/" target="_blank" rel="noopener noreferrer">linkedin</a></span></footer></main></body></html>
